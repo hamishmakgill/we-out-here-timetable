@@ -121,12 +121,6 @@
     margin-top:2px;
     letter-spacing:0.02em;
   }
-  .act-clash{
-    font-size:12px;
-    color:var(--fg);
-    margin-top:2px;
-    letter-spacing:0.02em;
-  }
 
   .day-header{
     font-size:19px;
@@ -1113,13 +1107,6 @@ function actRow(day, stage, name, start, end, showStage, clashWith){
   timeEl.className = "act-time";
   timeEl.textContent = start + "–" + end;
   body.appendChild(timeEl);
-
-  if(hasClash){
-    const clashEl = document.createElement("div");
-    clashEl.className = "act-clash";
-    clashEl.textContent = "Clashes with " + clashWith.join(", ");
-    body.appendChild(clashEl);
-  }
 
   row.appendChild(body);
 
