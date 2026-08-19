@@ -95,8 +95,6 @@
     user-select:none;
   }
   .act:active{background:#f2f2f2;}
-  .act.clash{background:#f2f2f2;}
-  .act.clash:active{background:#e6e6e6;}
   .dot{
     width:9px; height:9px; border-radius:50%;
     background:var(--grey);
@@ -974,26 +972,6 @@ function isLiveNow(day, start, end){
   return now >= range[0] && now < range[1];
 }
 
-function timeRange(r){
-  const s = sortKey(r.start);
-  let e = sortKey(r.end);
-  if(e <= s) e += 24*60;
-  return [s, e];
-}
-
-function findClashes(rows){
-  const ranges = rows.map(timeRange);
-  rows.forEach((r, i) => {
-    const [aStart, aEnd] = ranges[i];
-    r.clashWith = [];
-    rows.forEach((r2, j) => {
-      if(i === j) return;
-      const [bStart, bEnd] = ranges[j];
-      if(aStart < bEnd && bStart < aEnd) r.clashWith.push(r2.name);
-    });
-  });
-}
-
 // ---------- RENDER ----------
 const main = document.getElementById("main");
 const dayNav = document.getElementById("day-nav");
@@ -1091,13 +1069,12 @@ function renderMine(){
     if(rows.length === 0) return;
     any = true;
     rows.sort((x,y) => sortKey(x.start) - sortKey(y.start));
-    findClashes(rows);
     const hdr = document.createElement("div");
     hdr.className = "day-header";
     hdr.textContent = day;
     main.appendChild(hdr);
     rows.forEach(r => {
-      main.appendChild(actRow(day, r.stage, r.name, r.start, r.end, true, r.clashWith));
+      main.appendChild(actRow(day, r.stage, r.name, r.start, r.end, true));
     });
   });
   if(!any){
@@ -1108,12 +1085,11 @@ function renderMine(){
   }
 }
 
-function actRow(day, stage, name, start, end, showStage, clashWith){
+function actRow(day, stage, name, start, end, showStage){
   const id = actId(day, stage, name, start);
-  const hasClash = clashWith && clashWith.length > 0;
   const isLive = isLiveNow(day, start, end);
   const row = document.createElement("div");
-  row.className = "act" + (picks.has(id) ? " on" : "") + (hasClash ? " clash" : "") + (isLive ? " live" : "");
+  row.className = "act" + (picks.has(id) ? " on" : "") + (isLive ? " live" : "");
   row.dataset.id = id;
 
   const dot = document.createElement("div");
