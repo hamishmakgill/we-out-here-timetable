@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>We Out Here 2026 — Set Times</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  :root{
+    --bg:#fff; --fg:#000; --grey:#e0e0e0; --line:#000; --dim:#6b6b6b;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--fg);}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+  header{
+    position:sticky; top:0; z-index:10;
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
+  }
+  nav.tabs{display:flex;}
+  nav.tabs button{
+    flex:1; padding:11px 4px; font-size:12px; letter-spacing:0.08em;
+    text-transform:uppercase; background:var(--bg); color:var(--fg);
+    border:none; border-right:1px solid var(--line); font-family:inherit; font-weight:400;
+  }
+  nav.tabs button:last-child{border-right:none;}
+  nav.tabs button.active{background:var(--fg); color:var(--bg);}
+  nav.days{display:flex; border-top:1px solid var(--line);}
+  nav.days button{
+    flex:1; padding:9px 4px; font-size:12px; letter-spacing:0.06em;
+    text-transform:uppercase; background:var(--bg); color:var(--fg);
+    border:none; border-right:1px solid var(--line); font-family:inherit; font-weight:400;
+  }
+  nav.days button:last-child{border-right:none;}
+  nav.days button.active{background:var(--fg); color:var(--bg);}
+
+  main{padding:0 16px;}
+
+  .stage{
+    padding-top:22px;
+  }
+  .stage-name{
+    font-size:19px;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    margin-bottom:2px;
+  }
+  .stage-note{
+    font-size:12px;
+    color:var(--dim);
+  }
+  .stage-rule{
+    border-top:1px solid var(--line);
+    margin-top:12px;
+    margin-bottom:2px;
+  }
+
+  .act{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+    width:100%;
+    cursor:pointer;
+    user-select:none;
+  }
+  .act:active{background:#f2f2f2;}
+  .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--grey);
+    margin-top:5px;
+    flex:0 0 auto;
+  }
+  .act.on .dot{background:var(--fg);}
+  .act-body{flex:1; min-width:0;}
+  .act-name{
+    font-size:15.5px;
+    line-height:1.32;
+  }
+  .act-time{
+    font-size:12px;
+    color:var(--dim);
+    margin-top:3px;
+    letter-spacing:0.02em;
+  }
+
+  .day-header{
+    font-size:19px;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    padding:22px 0 8px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:4px;
+  }
+
+  .empty{
+    padding:60px 4px;
+    text-align:center;
+    color:var(--dim);
+    font-size:14px;
+    line-height:1.6;
+  }
+
+  footer.count{
+    position:sticky; bottom:0;
+    background:var(--bg);
+    border-top:1px solid var(--line);
+    padding:10px 16px;
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--dim);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="tabs">
+    <button id="tab-all" class="active">All Acts</button>
+    <button id="tab-mine">My Lineup <span id="mine-count"></span></button>
+  </nav>
+  <nav class="days" id="day-nav">
+    <button data-day="Thursday" class="active">Thu</button>
+    <button data-day="Friday">Fri</button>
+    <button data-day="Saturday">Sat</button>
+    <button data-day="Sunday">Sun</button>
+  </nav>
+</header>
+
+<main id="main"></main>
+
+<script>
+// ---------- DATA ----------
+// [name, start, end]
+const DATA = {
+Thursday: [
+ {stage:"Main Stage", note:"Hosted by Erica McKoy", acts:[
+   ["HVYWGHT & The Outlook Orchestra","21:20","23:00"],
+   ["Digable Planets","19:20","20:30"],
+   ["Butcher Brown","17:30","18:30"],
+   ["Tom Skinner","16:00","16:50"],
+   ["The Zawose Queens","14:40","15:30"],
+   ["Kotoa","13:20","14:00"]
+ ]},
+ {stage:"Lush Life", acts:[
+   ["Actress","20:20","21:20"],
+   ["Speakers Corner Quartet — Celebrates the Music of Arthur Russell","18:20","19:20"],
+   ["Keiyaa","16:50","17:40"],
+   ["Audrey Powne","15:20","16:20"],
+   ["Setwun","14:00","14:40"]
+ ]},
+ {stage:"Rhythm Corner", acts:[
+   ["Jamz Supernova","22:30","00:00"],
+   ["Juls","20:30","22:30"],
+   ["Femi Koleoso","18:30","20:30"],
+   ["Lefto Early Bird","16:30","18:30"],
+   ["Reeko & Camille Munn","14:00","16:30"]
+ ]},
+ {stage:"The Grove", acts:[
+   ["Barker (Live)","23:00","00:00"],
+   ["Lone (Live)","22:00","23:00"],
+   ["Ehua","20:30","22:00"],
+   ["Powder","18:00","20:30"]
+ ]},
+ {stage:"The Bowl", note:"15yrs of Rhythm Section", acts:[
+   ["Glenn Underground","22:00","00:00"],
+   ["Bradley Zero","19:00","22:00"],
+   ["Toribio","17:30","19:00"],
+   ["Marvin Jupiter","16:00","17:30"],
+   ["The Return of She","15:00","16:00"]
+ ]},
+ {stage:"Tomorrow's Warriors Big Top", acts:[
+   ["DJ Lovellious x Allexa Nava","23:00","00:00"],
+   ["Future Bubblers Showcase","22:10","23:00"],
+   ["Lara Jones","21:00","21:45"],
+   ["Genevieve Namazzi Quartet","19:50","20:35"],
+   ["Naima Adams","18:40","19:25"],
+   ["Noah Ojumu","17:30","18:15"],
+   ["Yasmina Sadiki","16:45","17:10"],
+   ["Manfredo Lament","15:50","16:25"],
+   ["Shadow & the Sol","15:00","15:30"],
+   ["Kneil","14:10","14:40"],
+   ["Nathaniel Taberner","13:20","13:50"]
+ ]},
+ {stage:"Roller Rink", acts:[
+   ["Atjazz","22:30","00:00"],
+   ["Giles Smith & Alexander Nut","20:00","22:30"],
+   ["Sorcha & Mike","18:30","20:00"],
+   ["Fairhurst","17:30","18:30"],
+   ["Levi Bussue & Chris Welch","16:00","17:30"],
+   ["Juliet Cromwell","15:00","16:00"],
+   ["Annie Nolan","13:30","15:00"]
+ ]},
+ {stage:"Love Dancin'", note:"Trojan Sound System & Friends", acts:[
+   ["Trojan Sound System b2b Nightmares on Wax b2b Daddy G — w/ Killa P, Hopepa (Fat Freddy's Drop), Supa4 Creation & Chucky Banton","20:00","00:00"],
+   ["Danniella Dee","18:30","20:00"],
+   ["Benny Salvador","17:00","18:30"],
+   ["Ari (Pirate Material) b2b Lila (Rinse FM)","15:00","17:00"]
+ ]},
+ {stage:"Lemon Lounge", acts:[
+   ["DJ Plead","22:00","23:00"],
+   ["Sosi & Maxwell Owin","20:30","22:00"],
+   ["Alia","19:30","20:30"],
+   ["Soph b2b Annida","18:00","19:30"],
+   ["Iko Cherie","16:30","18:00"],
+   ["Lemon Lounge Players","15:00","16:30"]
+ ]},
+ {stage:"Brawnswood", acts:[
+   ["Melomaniacs","22:00","00:00"],
+   ["Koshari","20:30","22:00"],
+   ["James Alexander Bright (Live)","19:30","20:30"],
+   ["Love Sun Days","18:00","19:30"],
+   ["Natural Information Society (Live)","17:00","18:00"],
+   ["Zaereo","15:30","17:00"],
+   ["Magdalena Moursy & Alexanderos","14:00","15:30"]
+ ]},
+ {stage:"Worldwide FM Presents", note:"WOH Radio", acts:[
+   ["Blissy E — Plastic People: The Blueprint of London's Great Club Scene","22:00","23:00"],
+   ["Tilda — Jungle, Pirate Radio & the Sound of Resistance","21:00","22:00"],
+   ["Jacob Robinson — Loud in the Dark: Queer Culture and the Village Section 28 Couldn't Silence","20:00","21:00"],
+   ["BBE with Karim Bitar — Meet in the MIDI: Exploring BBE (30 Years of Breaking Even)","19:00","20:00"],
+   ["Mariam — Iran's Underground Sound of Resistance","18:00","19:00"],
+   ["Kate Hutchinson — No Wave: The Scene That Shook Up the NYC Underground","17:00","18:00"],
+   ["Pia Collada — Skate, Surf & Sound","16:00","17:00"],
+   ["Rohan Rakhit — Pind","15:00","16:00"],
+   ["Ellie Talebian — From the Streets to the Studio: Building Hope Through Music","14:00","15:00"],
+   ["Rishi & Ishani — Folk's Queer Cradles","13:00","14:00"],
+   ["Future Bubblers w/ Bobby Brown — To Raise an Artist","12:00","13:00"],
+   ["Gilles Peterson — The Road to We Out Here","10:00","12:00"]
+ ]},
+ {stage:"Carhartt WIP", acts:[
+   ["Anz b2b Commodo","22:00","00:00"],
+   ["Henry Greenleaf","20:30","22:00"],
+   ["Introspekt","19:00","20:30"],
+   ["Mystic State","17:30","19:00"],
+   ["V.I.V.E.K","16:00","17:30"],
+   ["Re:ni & Biggabush","14:00","16:00"],
+   ["WIP (Carhartt Team)","12:00","14:00"]
+ ]},
+ {stage:"Beat Hotel", note:"x Ilegal Mezcal", acts:[
+   ["Tornado Wallace","22:00","00:00"],
+   ["Sarahtonin","20:00","22:00"],
+   ["Ruf Dug","18:00","20:00"],
+   ["Al Wootton","16:00","18:00"],
+   ["Sonido Tupinamba","14:00","16:00"]
+ ]},
+ {stage:"Near Mint Record Store", acts:[
+   ["Timo-G & Ben GC","22:00","00:00"],
+   ["Robert Luis","21:00","22:00"],
+   ["Me Gusta Collective","20:00","21:00"],
+   ["Groove Junction — DJ Emma, Zeph Miles, MC 3-Bee & Ash DJ","18:00","20:00"],
+   ["Jelly Records","17:00","18:00"],
+   ["Al Richards","16:00","17:00"],
+   ["Nae Style","15:00","16:00"],
+   ["Plays At 45","14:00","15:00"],
+   ["NVV DJ","13:00","14:00"]
+ ]},
+ {stage:"Passenger Presents", note:"Ground Tempo", acts:[
+   ["Irfan Rainy","21:00","23:00"],
+   ["The Mighty Zaf, Jake Love Vinyl & St Lukez","17:30","21:00"],
+   ["Yasmin Rai (Live)","16:45","17:30"]
+ ]},
+ {stage:"Love-Serve Bar", acts:[
+   ["HSWRK","22:00","23:00"],
+   ["Sticky Ricky","20:30","22:00"],
+   ["Dan Formless","19:00","20:30"],
+   ["Giles Hanh","17:00","19:00"],
+   ["Joe Muggs","16:00","17:00"],
+   ["Dan Medhurst","14:30","16:00"],
+   ["Frankson","13:00","14:30"]
+ ]},
+ {stage:"Once in a Blue Moon", acts:[
+   ["Missy A","23:00","00:00"],
+   ["Mike BC","22:00","23:00"],
+   ["Kev Mac","21:00","22:00"],
+   ["Andrew Devine","20:00","21:00"],
+   ["An Lawton","19:00","20:00"],
+   ["Jo Dressler","18:00","19:00"],
+   ["Molly Pop","17:00","18:00"],
+   ["Taxi","16:00","17:00"],
+   ["Barry's Here","15:00","16:00"],
+   ["Brother James","14:00","15:00"],
+   ["Dave Elmer","11:00","14:00"]
+ ]},
+ {stage:"On Rotation", acts:[
+   ["One Deck Audiophile Lounge w/ El Rayo Tequila — line up TBA","21:00","00:00"]
+ ]}
+],
+Friday: [
+ {stage:"Main Stage", note:"Hosted by Gilla", acts:[
+   ["Thundercat","21:40","22:50"],
+   ["Joy Crookes","19:50","20:50"],
+   ["Anaiis","18:10","19:10"],
+   ["Corto.Alto","16:40","17:30"],
+   ["Dave Okumu presents DVTN: A Prayer for D'Angelo","14:50","16:00"],
+   ["Cleo Reed","13:25","14:15"],
+   ["Bel Cobain","12:20","13:00"]
+ ]},
+ {stage:"Lush Life", acts:[
+   ["Adam F","20:40","21:50"],
+   ["Sampa the Great","19:10","20:00"],
+   ["Yukimi","17:30","18:20"],
+   ["John Glacier","16:00","16:50"],
+   ["The Heliocentrics","14:10","15:10"],
+   ["Olive Jones","12:50","13:30"]
+ ]},
+ {stage:"Rhythm Corner", acts:[
+   ["Luke Una","01:30","04:00"],
+   ["Palms Trax","23:30","01:30"],
+   ["Tama Sumo & Lakuti","20:30","23:30"],
+   ["Nightmares on Wax","19:00","20:30"],
+   ["Marcia Carr","17:30","19:00"],
+   ["Greentea Selecta","16:00","17:30"],
+   ["Yoofee (DJ Set)","15:00","16:00"]
+ ]},
+ {stage:"The Grove", note:"30 Years of BBE Music", acts:[
+   ["Johnny Reckless","02:30","04:00"],
+   ["Kenny Dope","00:30","02:30"],
+   ["The Mighty Zaf","23:00","00:30"],
+   ["Pete BBE","21:30","23:00"],
+   ["Jeff Higgins","20:00","21:30"]
+ ]},
+ {stage:"The Bowl", acts:[
+   ["Tasha","02:30","04:00"],
+   ["Facta & K-Lone","00:30","02:30"],
+   ["Josey Rebelle","23:00","00:30"],
+   ["Pariah","21:30","23:00"],
+   ["Beatrice M. & Alia","19:00","21:30"],
+   ["Simon Scott with Chunky","17:00","19:00"],
+   ["Iration Steppas","15:00","17:00"],
+   ["Channel One","13:00","15:00"],
+   ["Gilles Peterson","11:00","13:00"]
+ ]},
+ {stage:"Tomorrow's Warriors Big Top", acts:[
+   ["Wookie","02:00","04:00"],
+   ["Winona","00:30","02:00"],
+   ["DJ Perception","23:00","00:30"],
+   ["Rogê","22:10","23:00"],
+   ["Knats","21:00","21:45"],
+   ["Plumm","20:00","20:40"]
+ ]},
+ {stage:"Tomorrow's Warriors Presents", acts:[
+   ["Nu Establishment","18:45","19:30"],
+   ["Jobsearch","17:35","18:15"],
+   ["C-Sé","16:25","17:05"],
+   ["Lowxnd","15:20","16:00"],
+   ["Holly Reinhardt","14:15","14:55"],
+   ["Jam","13:10","13:50"],
+   ["Finka","12:20","12:50"],
+   ["The Clore","11:30","12:00"]
+ ]},
+ {stage:"Roller Rink", acts:[
+   ["Sonido Tupinamba","03:00","04:00"],
+   ["Mr Disco Kid","01:00","03:00"],
+   ["Love Injection","23:30","01:00"],
+   ["Bristol Northern Soul Club","22:00","23:30"],
+   ["Big Squeeze Soul","20:00","22:00"],
+   ["Otra","19:00","20:00"],
+   ["Chris Astrojazz","18:00","19:00"],
+   ["Rosie From the Block","16:30","18:00"],
+   ["Jimpster","15:30","16:30"],
+   ["Red City Solidarity Disco","14:30","15:30"],
+   ["Love Wins","13:30","14:30"],
+   ["Sophie Callis","12:30","13:30"],
+   ["Hannah Sherlock","11:00","12:30"]
+ ]},
+ {stage:"Love Dancin'", note:"Mr Scruff & Touching Bass", acts:[
+   ["Sammseed","02:30","04:00"],
+   ["Shy One","00:30","02:30"],
+   ["Errol & Alex Rita","22:30","00:30"],
+   ["Blissy E & Drey","21:00","22:30"],
+   ["Mr. Scruff & DJ Spinna feat. Vanessa Freeman & MC Kwasi","15:00","21:00"],
+   ["Alexander Nut","13:00","15:00"],
+   ["Léna C","11:00","13:00"]
+ ]},
+ {stage:"Lemon Lounge", acts:[
+   ["Yushh","22:00","23:00"],
+   ["Bruce","21:00","22:00"],
+   ["Lagoon","20:00","21:00"],
+   ["Zwana b2b Joe Cotch","18:30","20:00"],
+   ["Credable & MC Stiffler (fka Release D Riddim)","17:30","18:30"],
+   ["Chunky","16:30","17:30"],
+   ["Danniella Dee","15:30","16:30"],
+   ["Kay Suzuki","14:00","15:30"],
+   ["Fraser the Eraser","13:00","14:00"],
+   ["Zawose Queens (Live)","12:00","13:00"],
+   ["Zesty Zumba","11:00","12:00"]
+ ]},
+ {stage:"Brawnswood", acts:[
+   ["Ellie & Naima Adams","00:00","02:00"],
+   ["Matthew Herbert","22:30","00:00"],
+   ["Lil' Minx","21:00","22:30"],
+   ["Yukimi (Live)","20:00","21:00"],
+   ["Cosmo Sofi & Sanoy","18:30","20:00"],
+   ["Kate Hutchinson","17:00","18:30"],
+   ["Speakers Corner Quartet (Live)","16:00","17:00"],
+   ["Rachel","14:30","16:00"],
+   ["Zena (Live)","13:30","14:30"],
+   ["Claudia TCZ","12:00","13:30"],
+   ["Balearadelica (RSL) (Live)","11:00","12:00"]
+ ]},
+ {stage:"Worldwide FM Presents", note:"WOH Radio", acts:[
+   ["Donut — Worldwide FM Resident Closing the Night","22:00","23:00"],
+   ["Zuri — 15 Years of Príncipe Discos","21:00","22:00"],
+   ["Home Radio presents Scenius — Mapping the Evolutions of Broken Beat and Jungle","20:00","21:00"],
+   ["Felix Mufti — Protect Scouse Dolls","19:00","20:00"],
+   ["Kabom (Bolts & Jazzin' the Park) — Wealth Redistribution Through Crate Diggin'","18:00","19:00"],
+   ["Gaby D'Annunzio — Sounds From Afghanistan","17:00","18:00"],
+   ["Sophia — Music Beyond the Buffer Zone","16:00","17:00"],
+   ["Emma Warren — Sounds Like Unity","15:00","16:00"],
+   ["Bubble Club — Radically Inclusive Nightlife","14:00","15:00"],
+   ["Tomorrow's Warriors — Jazz Moving Through Generations with Gabriel Starkey","13:00","14:00"],
+   ["Luke Una — A Worldwide Breakfast","11:00","13:00"]
+ ]},
+ {stage:"Carhartt WIP", acts:[
+   ["Zora Jones","00:30","02:00"],
+   ["Khadija Al Hanafi","23:30","00:30"]
+ ]},
+ {stage:"160 Unity Takeover", acts:[
+   ["DJ Spinn","22:30","23:30"],
+   ["Craic David, Sohotsospicy & Seb","21:00","22:30"],
+   ["Thempress","20:00","21:00"],
+   ["DJ Polo","18:30","20:00"],
+   ["Gbosa; Cocobops","17:00","18:30"],
+   ["Another Place","15:00","17:00"],
+   ["Isha","13:30","15:00"],
+   ["WIP (Carhartt Team)","12:00","13:30"]
+ ]},
+ {stage:"Beat Hotel", note:"x Ilegal Mezcal", acts:[
+   ["Yu Su","00:00","02:00"],
+   ["Alex Kassian","22:00","00:00"],
+   ["Babyschön","20:00","22:00"],
+   ["Nadia Ksaiba","18:00","20:00"],
+   ["DJ Subaru","16:00","18:00"],
+   ["Wasted Space & Grace","14:00","16:00"],
+   ["Room Service","12:00","14:00"]
+ ]},
+ {stage:"Near Mint Record Store", acts:[
+   ["Eva May & Alex Attias","02:30","04:00"],
+   ["Handson Family","01:00","02:30"],
+   ["Dom Servini","00:00","01:00"],
+   ["Sarah Love","22:30","00:00"],
+   ["DJ Bobafatt","21:00","22:30"],
+   ["Dru Skillz","19:30","21:00"],
+   ["Go Sista","18:00","19:30"],
+   ["Chris P Cuts","17:00","18:00"],
+   ["Jeff Daniels","16:00","17:00"],
+   ["Matt Baila","15:00","16:00"],
+   ["WSA Records","14:00","15:00"],
+   ["Don Nelson","13:00","14:00"],
+   ["Bodie and Andy Pyett","12:00","13:00"],
+   ["Art of Soul","11:00","12:00"]
+ ]},
+ {stage:"Passenger Presents", note:"Ground Tempo", acts:[
+   ["Giles Smith","21:30","23:00"],
+   ["Heléna Star","20:00","21:30"],
+   ["Kojay & P Lucas","18:30","20:00"],
+   ["Echo Juliet","17:00","18:30"],
+   ["Auntie Flo (Plants Can Dance – Live Set)","16:00","17:00"],
+   ["Talk TBA","15:00","16:00"]
+ ]},
+ {stage:"Love-Serve Bar", note:"Out Since Friday", acts:[
+   ["Metrodome","22:00","23:00"],
+   ["Il Bosco","21:00","22:00"],
+   ["Ladybeige","20:00","21:00"],
+   ["Kath McDermott","19:00","20:00"],
+   ["Miss Jackson","18:00","19:00"],
+   ["Kickin Pigeon","17:00","18:00"],
+   ["Jimmy Turnbull","16:00","17:00"],
+   ["Matt Triggs & Loz Triggs","15:00","16:00"],
+   ["Dave O, Charlie Beck & Si Fi (Social DJs)","14:00","15:00"],
+   ["Steve Taylor","13:00","14:00"],
+   ["DJ Emerald (Disco Mums)","12:00","13:00"]
+ ]},
+ {stage:"Once in a Blue Moon", acts:[
+   ["Woody","03:00","04:00"],
+   ["Tekin","02:00","03:00"],
+   ["Nisha Duggal","01:00","02:00"],
+   ["Monobrow (Sound Records, Stroud)","23:00","01:00"],
+   ["Sweetpea","22:00","23:00"],
+   ["Noni Mouse","21:00","22:00"],
+   ["Chris Wheatley","20:00","21:00"],
+   ["Kslice","19:00","20:00"],
+   ["Mark Broadbent","18:00","19:00"],
+   ["Siofra McComb","17:00","18:00"],
+   ["Anti Social Jazz Club","16:00","17:00"],
+   ["No Fakin'","15:00","16:00"],
+   ["Conduit","14:00","15:00"],
+   ["Ni Maxine (DJ Set)","13:00","14:00"],
+   ["Stoaty","12:00","13:00"],
+   ["Sam Haughton","11:00","12:00"]
+ ]}
+],
+Saturday: [
+ {stage:"Main Stage", note:"Hosted by Handson Family", acts:[
+   ["Peven Everett","21:40","22:50"],
+   ["Arthur Verocai with Nu Civilisation Orchestra","19:40","21:00"],
+   ["Musclecars (Live)","17:50","18:50"],
+   ["Jazzanova (Live)","16:20","17:20"],
+   ["Jamie Woon","14:50","15:50"],
+   ["Momoko Gill","13:30","14:20"],
+   ["Amaro Freitas","12:00","12:50"]
+ ]},
+ {stage:"Lush Life", acts:[
+   ["Kofi Stone","20:30","21:30"],
+   ["Mike","18:50","19:50"],
+   ["Gena feat. LIV.E & Karriem Riggins","17:00","18:00"],
+   ["Aja Monet","15:40","16:30"],
+   ["Steam Down","14:10","15:00"],
+   ["Kahil El'Zabar — Ethnic Heritage Ensemble","12:50","13:40"],
+   ["Barney Keen","11:40","12:20"]
+ ]},
+ {stage:"Rhythm Corner", acts:[
+   ["Ivy Lab","02:30","04:00"],
+   ["Calibre ft. SP:MC","00:30","02:30"],
+   ["Alix Perez ft. SP:MC","22:30","00:30"],
+   ["Silva Snipa","21:00","22:30"],
+   ["DJ Flight","19:00","21:00"],
+   ["Sweetpea","17:00","19:00"],
+   ["Selectacee","15:00","17:00"]
+ ]},
+ {stage:"The Grove", acts:[
+   ["Nono Gigsta","02:00","04:00"],
+   ["Blawan (Live)","01:00","02:00"],
+   ["Re:ni","23:00","01:00"],
+   ["Shackleton (Live)","22:00","23:00"],
+   ["I-Sha","20:00","22:00"]
+ ]},
+ {stage:"The Bowl", acts:[
+   ["Sadar Bahar","02:00","04:00"],
+   ["Ge-ology","23:00","02:00"],
+   ["Lev & Faro","21:30","23:00"],
+   ["Brighter Days Family","20:00","21:30"],
+   ["King Britt","17:00","20:00"],
+   ["Shy One","15:30","17:00"],
+   ["Scientist","14:00","15:30"]
+ ]},
+ {stage:"Tomorrow's Warriors Big Top", note:"10 Years of Love Muscle", acts:[
+   ["Rroxymore","02:00","04:00"],
+   ["Lucy Locket & Michael Upson","23:00","02:00"],
+   ["Salimata","22:20","23:00"],
+   ["Elliott Skinner","21:00","21:55"],
+   ["The CJP Band","20:00","20:40"]
+ ]},
+ {stage:"Tomorrow's Warriors Presents", acts:[
+   ["Mali Sheard","18:45","19:30"],
+   ["Kassa GJ","17:30","18:15"],
+   ["Cube Legacy Band — Sultan, Menelik, Cassius, Francisco, Donovan","16:20","17:05"],
+   ["BXL x LDN Interplay III","14:50","15:50"],
+   ["Klara Devlin","13:40","14:20"],
+   ["Ciara O Sextet","12:35","13:15"],
+   ["Tomorrow's Warriors Frontline","11:30","12:10"]
+ ]},
+ {stage:"Love Dancin'", note:"Cosmodelica & Friends", acts:[
+   ["DJ Nori","01:30","04:00"],
+   ["Colleen 'Cosmo' Murphy","23:00","01:30"],
+   ["Toribio","21:00","23:00"],
+   ["Eves'drop Collective","19:00","21:00"],
+   ["Rohan Rakhit","17:00","19:00"],
+   ["Poly-Ritmo","15:00","17:00"],
+   ["Trafford (Nick Williams Celebration Set)","13:00","15:00"],
+   ["Love Injection","11:00","13:00"]
+ ]},
+ {stage:"Roller Rink", acts:[
+   ["TBC","02:00","04:00"],
+   ["JKriv","00:30","02:00"],
+   ["Cosmo Sofi","23:00","00:30"],
+   ["Brown Excellence","21:30","23:00"],
+   ["Gena (DJ Set feat. LIV.E & Karriem Riggins)","20:00","21:30"],
+   ["JMG Collective","18:00","20:00"],
+   ["Avi Del Mono","17:00","18:00"],
+   ["Woody Boase","16:00","17:00"],
+   ["Táina","15:00","16:00"],
+   ["Nam","14:00","15:00"],
+   ["Rhys Baker","13:00","14:00"],
+   ["Mafe Maracuyeah","12:00","13:00"],
+   ["Polymaas","11:00","12:00"]
+ ]},
+ {stage:"Lemon Lounge", acts:[
+   ["Ceephax Acid Crew (Live)","21:30","23:00"],
+   ["★","20:30","21:30"],
+   ["DJ Spanish Fly (Live)","19:30","20:30"],
+   ["Alicia","18:00","19:30"],
+   ["Lightfoot","17:00","18:00"],
+   ["Coco Maria","16:00","17:00"],
+   ["Mr Gibbon","15:00","16:00"],
+   ["Alexander Nut","14:00","15:00"],
+   ["Linett Kamala (DJ Set)","13:00","14:00"],
+   ["Linett Kamala (Talk)","12:00","13:00"],
+   ["Afromerm (Live)","11:00","12:00"]
+ ]},
+ {stage:"Carhartt WIP", acts:[
+   ["Guedra Guedra","00:30","02:00"],
+   ["DJ Lag","23:00","00:30"],
+   ["JD Reid","21:30","23:00"],
+   ["Bushbby","20:00","21:30"],
+   ["Norsicaa","18:30","20:00"],
+   ["Lagoon","17:00","18:30"],
+   ["Architect","15:30","17:00"],
+   ["Stone","13:30","15:30"],
+   ["Thempress","12:00","13:30"]
+ ]},
+ {stage:"Worldwide FM Presents", note:"WOH Radio", acts:[
+   ["Lovie — 1976","21:00","23:00"],
+   ["Tasha — Neighbourhood","20:00","21:00"],
+   ["Kate Magic & Kirsty Hawkshaw — Back to '89 & the Free Party Scene","19:00","20:00"],
+   ["Neighbourhood — Notes From Belfast","18:00","19:00"],
+   ["Lupini — We Live Here","17:00","18:00"],
+   ["Amaka — A Story of How Nigerian Communities Found Solace in Highlife","16:00","17:00"],
+   ["Giovanna Boffa — What's the Point? feat. Kahil El'Zabar & Peven Everett","15:00","16:00"],
+   ["Admin, Living Room Dance Club & Yadava — Liv Togevver, Britfunk and the Sounds of Multi-Cultural Britain","14:00","15:00"],
+   ["Santa Leticia — Underground Pirate Radio From Spain","13:00","14:00"],
+   ["Colleen 'Cosmo' Murphy","11:00","13:00"]
+ ]},
+ {stage:"Brawnswood", acts:[
+   ["Izco","00:00","02:00"],
+   ["Rohan Rakhit","22:30","00:00"],
+   ["Marina b2b Yazmin Lacey with MC Meshach","21:00","22:30"],
+   ["Your Brothers Keeper (Live) with Gary Bartz","20:00","21:00"],
+   ["In Flames","18:45","20:00"],
+   ["Isaiah Collier (Live)","18:15","18:45"],
+   ["Tyson b2b Selassie TBC","17:00","18:15"],
+   ["Bel Cobain (Live)","16:00","17:00"],
+   ["Valentine Comar","14:30","16:00"],
+   ["Donut","14:00","14:30"],
+   ["OHS — Dave Okum, Tom Herbert & Tom Skinner","13:00","14:00"],
+   ["Soph","12:00","13:00"],
+   ["Alex Intas","11:00","12:00"]
+ ]},
+ {stage:"Beat Hotel", note:"x Ilegal Mezcal", acts:[
+   ["Paula Tape","00:00","02:00"],
+   ["Make a Dance","22:00","00:00"],
+   ["Esa","20:00","22:00"],
+   ["Macca","18:00","20:00"],
+   ["Cami Layé Okún","16:00","18:00"],
+   ["Selassie TBC","14:00","16:00"],
+   ["Room Service","12:00","14:00"]
+ ]},
+ {stage:"Near Mint Record Store", acts:[
+   ["Jon Packman","02:45","04:00"],
+   ["Karl Roscoe","01:30","02:45"],
+   ["Overjoyed — Mr Thing, Gilla & Russ Ryan","22:30","01:30"],
+   ["Cami Layé Okún","21:30","22:30"],
+   ["Daniele Mizar (Cam Soundsystem)","20:00","21:30"],
+   ["Ruby Francis","19:00","20:00"],
+   ["Dave Forde","18:00","19:00"],
+   ["Jungalice","17:00","18:00"],
+   ["Alfie Panaiotis & Tall Nico","16:00","17:00"],
+   ["Liberation Records","15:00","16:00"],
+   ["J Felix","14:00","15:00"],
+   ["DJ Himitsu","13:00","14:00"],
+   ["VDS London x Tokyo","12:00","13:00"],
+   ["Jim-R","11:00","12:00"]
+ ]},
+ {stage:"Passenger Presents", note:"Ground Tempo", acts:[
+   ["Micky & Rich (Passenger)","21:30","23:00"],
+   ["Liminal People","20:15","21:30"],
+   ["Tier (Shakara Soul)","19:00","20:15"],
+   ["Rachel Craddock","18:00","19:00"],
+   ["Bob Hill","17:00","18:00"],
+   ["Marysia Osu (Live)","16:00","17:00"],
+   ["Talk TBC","15:00","16:00"]
+ ]},
+ {stage:"Love-Serve Bar", acts:[
+   ["Lize","21:30","23:00"],
+   ["Faide b2b Rej","20:00","21:30"],
+   ["Anonymous Funk Odyssey","18:30","20:00"],
+   ["Dipod","17:00","18:30"],
+   ["Tintin","15:30","17:00"],
+   ["Will Rowe b2b DJ Emma","14:00","15:30"],
+   ["Big Fish Little Fish (Family Rave)","12:00","14:00"]
+ ]},
+ {stage:"Once in a Blue Moon", acts:[
+   ["Joe Muggs' Ambient Zone","01:00","04:00"],
+   ["Daksh","23:00","01:00"],
+   ["Shai Space LDN (Deep Listening Takeover)","20:00","23:00"],
+   ["Jeet","19:00","20:00"],
+   ["Niix","18:00","19:00"],
+   ["Sway of the Verses","17:00","18:00"],
+   ["Si Kilmo (Hush Club)","16:00","17:00"],
+   ["Leewok, Curly Waters & Fanta Shandy (Strange Brew, Bristol)","14:00","16:00"],
+   ["Euan McGinty (Time Capsule Records)","12:00","14:00"],
+   ["Once in a Blue Moon Breakfast with PXM & OIABM Residents","11:00","12:00"]
+ ]},
+ {stage:"On Rotation", acts:[
+   ["One Deck Audiophile Lounge w/ El Rayo Tequila — line up TBA","21:00","02:00"]
+ ]}
+],
+Sunday: [
+ {stage:"Main Stage", note:"Hosted by Dom Servini", acts:[
+   ["Gary Bartz","21:15","22:30"],
+   ["Stereolab","19:30","20:30"],
+   ["Kahil El'Zabar presents A Love Supreme","18:00","19:00"],
+   ["Ana Frango Elétrico","16:30","17:30"],
+   ["Zena x Mereba x Kibrom Birhane","15:00","16:00"],
+   ["Joshua Idehen","13:30","14:30"],
+   ["Da Lata","12:00","13:00"]
+ ]},
+ {stage:"Lush Life", acts:[
+   ["Yazmin Lacey","20:30","21:30"],
+   ["James K","19:00","19:50"],
+   ["Herbert & Momoko","17:20","18:20"],
+   ["Shabaka","15:50","16:40"],
+   ["Natural Information Society","14:20","15:10"],
+   ["Papaya Noon","12:50","13:40"]
+ ]},
+ {stage:"Rhythm Corner", acts:[
+   ["Gilles Peterson & Friends","23:00","00:00"],
+   ["Very Special Guest","21:00","23:00"],
+   ["Salute","19:00","21:00"],
+   ["Lady Passion","17:15","19:00"],
+   ["Dr Banana","15:30","17:15"],
+   ["Ella Knight","13:30","15:30"]
+ ]},
+ {stage:"The Grove", note:"20yrs of Rupture", acts:[
+   ["dBridge","23:00","00:00"],
+   ["Mantra","22:00","23:00"],
+   ["Bryan Gee (Old Skool Set)","20:30","22:00"],
+   ["Double O","19:30","20:30"],
+   ["Winston Hazel & Josey Rebelle feat. MC Chickaboo","18:00","19:30"]
+ ]},
+ {stage:"The Bowl", acts:[
+   ["Mad Professor","22:30","00:00"],
+   ["Selassie TBC","21:00","22:30"],
+   ["Emma-Jean Thackray","19:40","21:00"],
+   ["Eves'drop Collective","17:40","19:40"],
+   ["Tone B. Nimble","16:10","17:40"],
+   ["Lovie","14:50","16:10"],
+   ["Charlie Dark","13:00","14:50"]
+ ]},
+ {stage:"Tomorrow's Warriors Big Top", acts:[
+   ["Georgie Sweet","22:20","23:00"],
+   ["Liim","21:05","21:45"],
+   ["Madeleine","20:00","20:40"]
+ ]},
+ {stage:"Tomorrow's Warriors Presents", acts:[
+   ["Grime Supreme","18:30","19:30"],
+   ["TW Big Band","17:10","17:50"],
+   ["Warriors Alumni Jam","15:45","16:30"],
+   ["Christ-Stéphane Boizi","14:35","15:20"],
+   ["TW Youth Ensemble","13:30","14:10"],
+   ["TW Junior Band","12:25","13:05"],
+   ["New Gen Jazz","11:30","12:00"]
+ ]},
+ {stage:"Roller Rink", acts:[
+   ["Lou Hayter","22:30","00:00"],
+   ["Greg Wilson","20:30","22:30"],
+   ["Jonjo Jury","19:00","20:30"],
+   ["Drifty b2b Ell.iot","17:00","19:00"],
+   ["Lily London","16:00","17:00"],
+   ["Mithun","15:00","16:00"],
+   ["Loz Track","14:00","15:00"],
+   ["Pegasvs","13:00","14:00"],
+   ["Dean Sunshine Smith","12:00","13:00"],
+   ["Miss Mash","11:00","12:00"]
+ ]},
+ {stage:"Love Dancin'", note:"Another Sunday Afternoon at Dingwalls", acts:[
+   ["Patrick Forge, Gilles Peterson, Colin Curtis, Coco Maria","11:00","00:00"]
+ ]},
+ {stage:"Lemon Lounge", acts:[
+   ["UK Hunky","22:00","23:00"],
+   ["Mi-El","20:30","22:00"],
+   ["Ri Mistry","19:30","20:30"],
+   ["Romaal Kultan","18:30","19:30"],
+   ["The Rub","18:00","18:30"],
+   ["Borge","17:00","18:00"],
+   ["Shy One","16:00","17:00"],
+   ["Dare Balogun","14:30","16:00"],
+   ["Rikette Genesis","13:30","14:30"],
+   ["Club WIP (Talk)","12:00","13:30"],
+   ["Beholder (Live)","11:00","12:00"]
+ ]},
+ {stage:"Brawnswood", acts:[
+   ["Joe Lye & Katie Barber","22:30","00:00"],
+   ["Paul Camo","21:00","22:30"],
+   ["Ana Frango Elétrico (Live)","20:00","21:00"],
+   ["Santa Leticia","19:00","20:00"],
+   ["Tambourine Hands","18:00","19:00"],
+   ["Oscar Jerome (Live)","17:00","18:00"],
+   ["Kamar","15:30","17:00"],
+   ["Papaoul","14:00","15:30"],
+   ["Klash and Brown (Live)","13:00","14:00"],
+   ["Roberta Cutolo","12:00","13:00"],
+   ["Andrea Trout & Cyndi (Handson Family)","11:00","12:00"]
+ ]},
+ {stage:"Worldwide FM Presents", note:"WOH Radio", acts:[
+   ["Lady Passion — Raised on Rewind","22:00","23:00"],
+   ["Yeahitsrenee — Soca & the Sound of Home","21:00","22:00"],
+   ["Aethher & Josh Aitman — It Takes a Village to Fight the AIDS Crisis","20:00","21:00"],
+   ["Wade Dao & Whiles — Melting Part: Surrounded by Water","19:00","20:00"],
+   ["Kamar — Under the Hood of Post-Punk Dub","18:00","19:00"],
+   ["Zaereo — Polska Scena with Albert Karch & Igor Wiśniewsk","17:00","18:00"],
+   ["Fen — Sawtuha: Arabic Women & Resistance","16:00","17:00"],
+   ["Mo Ayoub & Muzikawi — Censored Ethiopian Rare Groove: Music From the Shadow of the Revolution","15:00","16:00"],
+   ["Aneesha Kotwani — Behind Every Woman, a Village","14:00","15:00"],
+   ["Héléna Star — Therapy Presents: An Ode to Parents","13:00","14:00"],
+   ["Coco Maria — A Worldwide Breakfast","11:00","13:00"]
+ ]},
+ {stage:"Carhartt WIP", acts:[
+   ["Dr Banana","22:30","00:00"],
+   ["Silva Snipa","21:30","22:30"],
+   ["Baile Ijó","19:30","21:30"],
+   ["Ivy Lab","18:30","19:30"],
+   ["Wilfy D","17:00","18:30"],
+   ["Nina Yamada","15:00","17:00"],
+   ["Tara Lily (Shakti Jazz)","13:30","15:00"],
+   ["WIP (Carhartt Team)","12:00","13:30"]
+ ]},
+ {stage:"Beat Hotel", note:"x Ilegal Mezcal", acts:[
+   ["Prosumer","22:00","00:00"],
+   ["Low Life with Bill Brewster & Frank Broughton","20:00","22:00"],
+   ["Ruby Savage","18:00","20:00"],
+   ["Coco Maria","16:00","18:00"],
+   ["United Freedom Collective","14:00","16:00"],
+   ["Room Service","12:00","14:00"]
+ ]},
+ {stage:"Passenger Presents", note:"Ground Tempo", acts:[
+   ["Mr. Redley","22:00","23:00"],
+   ["Plentyppl","21:00","22:00"],
+   ["Orii Club","20:00","21:00"],
+   ["Almass Badat","18:30","20:00"],
+   ["Sadeedo","17:30","18:30"],
+   ["Tara Lily (Live)","16:30","17:30"],
+   ["Talk TBC","15:00","16:00"]
+ ]},
+ {stage:"Near Mint Record Store", acts:[
+   ["Dance Regular with EVM128 & Matica","22:30","00:00"],
+   ["Wheel Up","21:30","22:30"],
+   ["DJ Tara","20:00","21:30"],
+   ["Steffi Bricks","19:00","20:00"],
+   ["La Rumba","18:00","19:00"],
+   ["Aidy West","17:00","18:00"],
+   ["Sammybennis","16:00","17:00"],
+   ["Kieran Jandu b2b Silasthedon","15:00","16:00"],
+   ["Rhys Baker","14:00","15:00"],
+   ["Fingaz","13:00","14:00"],
+   ["Leroy From Kudos","12:00","13:00"],
+   ["Euan McGinty","11:00","12:00"]
+ ]},
+ {stage:"Love-Serve Bar", acts:[
+   ["E Double D","21:30","23:00"],
+   ["Mikey D.O.N","20:00","21:30"],
+   ["Saige Sounds","18:30","20:00"],
+   ["Tayo & Frank Tope","16:15","18:30"],
+   ["Jaime Rosso","15:00","16:15"],
+   ["Jacana People","14:00","15:00"],
+   ["Activate (DJ Competition Final)","12:00","14:00"]
+ ]},
+ {stage:"Once in a Blue Moon", acts:[
+   ["DJ Cutterz","23:00","00:00"],
+   ["Pamoja Disco Club","22:00","23:00"],
+   ["Love Sun Days","21:00","22:00"],
+   ["El Fadil","20:00","21:00"],
+   ["Rose","19:00","20:00"],
+   ["Haze","17:00","19:00"],
+   ["Aethher","16:00","17:00"],
+   ["Casual Max","15:00","16:00"],
+   ["Triximo","14:00","15:00"],
+   ["Nathan Worm","13:00","14:00"],
+   ["Throb Hall","11:00","13:00"]
+ ]},
+ {stage:"On Rotation", acts:[
+   ["One Deck Audiophile Lounge w/ El Rayo Tequila — line up TBA","21:00","00:00"]
+ ]}
+]
+};
+
+const DAYS = ["Thursday","Friday","Saturday","Sunday"];
+
+// ---------- STATE ----------
+const STORE_KEY = "woh26-picks";
+let picks = new Set(JSON.parse(localStorage.getItem(STORE_KEY) || "[]"));
+let view = "all";
+let currentDay = "Thursday";
+
+function savePicks(){
+  localStorage.setItem(STORE_KEY, JSON.stringify([...picks]));
+}
+
+function sortKey(t){
+  const [h,m] = t.split(":").map(Number);
+  let mins = h*60+m;
+  if(h < 6) mins += 24*60;
+  return mins;
+}
+
+// ---------- RENDER ----------
+const main = document.getElementById("main");
+const dayNav = document.getElementById("day-nav");
+
+function render(){
+  document.getElementById("tab-all").classList.toggle("active", view==="all");
+  document.getElementById("tab-mine").classList.toggle("active", view==="mine");
+  dayNav.style.display = view==="all" ? "flex" : "none";
+  const count = picks.size;
+  document.getElementById("mine-count").textContent = count ? "("+count+")" : "";
+
+  main.innerHTML = "";
+  if(view === "all"){
+    renderAll();
+  } else {
+    renderMine();
+  }
+}
+
+function renderAll(){
+  const stages = DATA[currentDay];
+  stages.forEach((s, si) => {
+    const stageEl = document.createElement("div");
+    stageEl.className = "stage";
+    const nameEl = document.createElement("div");
+    nameEl.className = "stage-name";
+    nameEl.textContent = s.stage;
+    stageEl.appendChild(nameEl);
+    if(s.note){
+      const noteEl = document.createElement("div");
+      noteEl.className = "stage-note";
+      noteEl.textContent = s.note;
+      stageEl.appendChild(noteEl);
+    }
+    const rule = document.createElement("div");
+    rule.className = "stage-rule";
+    stageEl.appendChild(rule);
+
+    const order = s.acts.map((a, ai) => ai);
+    order.sort((x, y) => sortKey(s.acts[x][1]) - sortKey(s.acts[y][1]));
+    order.forEach(ai => {
+      const a = s.acts[ai];
+      stageEl.appendChild(actRow(currentDay, si, ai, a[0], a[1], a[2]));
+    });
+    main.appendChild(stageEl);
+  });
+}
+
+function renderMine(){
+  let any = false;
+  DAYS.forEach(day => {
+    const stages = DATA[day];
+    let rows = [];
+    stages.forEach((s, si) => {
+      s.acts.forEach((a, ai) => {
+        const id = day+"__"+si+"__"+ai;
+        if(picks.has(id)){
+          rows.push({id, stage:s.stage, name:a[0], start:a[1], end:a[2], si, ai});
+        }
+      });
+    });
+    if(rows.length === 0) return;
+    any = true;
+    rows.sort((x,y) => sortKey(x.start) - sortKey(y.start));
+    const hdr = document.createElement("div");
+    hdr.className = "day-header";
+    hdr.textContent = day;
+    main.appendChild(hdr);
+    rows.forEach(r => {
+      main.appendChild(actRow(day, r.si, r.ai, r.name, r.start, r.end, r.stage));
+    });
+  });
+  if(!any){
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No acts picked yet.\nGo to All Acts and tap the ones you want to catch.";
+    main.appendChild(empty);
+  }
+}
+
+function actRow(day, si, ai, name, start, end, stageLabel){
+  const id = day+"__"+si+"__"+ai;
+  const row = document.createElement("div");
+  row.className = "act" + (picks.has(id) ? " on" : "");
+  row.dataset.id = id;
+
+  const dot = document.createElement("div");
+  dot.className = "dot";
+  row.appendChild(dot);
+
+  const body = document.createElement("div");
+  body.className = "act-body";
+  const nameEl = document.createElement("div");
+  nameEl.className = "act-name";
+  nameEl.textContent = name;
+  body.appendChild(nameEl);
+
+  const timeEl = document.createElement("div");
+  timeEl.className = "act-time";
+  timeEl.textContent = stageLabel ? (stageLabel + " · " + start + "–" + end) : (start + "–" + end);
+  body.appendChild(timeEl);
+
+  row.appendChild(body);
+
+  row.addEventListener("click", () => {
+    if(picks.has(id)){ picks.delete(id); } else { picks.add(id); }
+    savePicks();
+    render();
+  });
+
+  return row;
+}
+
+// ---------- NAV ----------
+document.getElementById("tab-all").addEventListener("click", () => { view="all"; render(); });
+document.getElementById("tab-mine").addEventListener("click", () => { view="mine"; render(); });
+dayNav.querySelectorAll("button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentDay = btn.dataset.day;
+    dayNav.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  });
+});
+
+render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
