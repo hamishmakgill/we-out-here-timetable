@@ -1,4 +1,4 @@
-const CACHE = "woh26-v4";
+const CACHE = "woh26-v5";
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
