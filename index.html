@@ -95,6 +95,8 @@
     user-select:none;
   }
   .act:active{background:#f2f2f2;}
+  .act.clash{background:#f2f2f2;}
+  .act.clash:active{background:#e6e6e6;}
   .dot{
     width:9px; height:9px; border-radius:50%;
     background:var(--grey);
@@ -107,10 +109,22 @@
     font-size:15.5px;
     line-height:1.32;
   }
-  .act-time{
+  .act-stage{
     font-size:12px;
     color:var(--dim);
     margin-top:3px;
+    letter-spacing:0.02em;
+  }
+  .act-time{
+    font-size:12px;
+    color:var(--dim);
+    margin-top:2px;
+    letter-spacing:0.02em;
+  }
+  .act-clash{
+    font-size:12px;
+    color:var(--fg);
+    margin-top:2px;
     letter-spacing:0.02em;
   }
 
@@ -903,11 +917,57 @@ function savePicks(){
   localStorage.setItem(STORE_KEY, JSON.stringify([...picks]));
 }
 
+function migrateOldPicks(){
+  const migrated = new Set();
+  let changed = false;
+  picks.forEach(id => {
+    const m = id.match(/^([A-Za-z]+)__(\d+)__(\d+)$/);
+    if(m){
+      changed = true;
+      const day = m[1], si = Number(m[2]), ai = Number(m[3]);
+      const stageObj = DATA[day] && DATA[day][si];
+      const act = stageObj && stageObj.acts[ai];
+      if(act) migrated.add(actId(day, stageObj.stage, act[0], act[1]));
+    } else {
+      migrated.add(id);
+    }
+  });
+  if(changed){
+    picks = migrated;
+    savePicks();
+  }
+}
+migrateOldPicks();
+
 function sortKey(t){
   const [h,m] = t.split(":").map(Number);
   let mins = h*60+m;
   if(h < 6) mins += 24*60;
   return mins;
+}
+
+function actId(day, stage, name, start){
+  return day + "|" + stage + "|" + start + "|" + name;
+}
+
+function timeRange(r){
+  const s = sortKey(r.start);
+  let e = sortKey(r.end);
+  if(e <= s) e += 24*60;
+  return [s, e];
+}
+
+function findClashes(rows){
+  const ranges = rows.map(timeRange);
+  rows.forEach((r, i) => {
+    const [aStart, aEnd] = ranges[i];
+    r.clashWith = [];
+    rows.forEach((r2, j) => {
+      if(i === j) return;
+      const [bStart, bEnd] = ranges[j];
+      if(aStart < bEnd && bStart < aEnd) r.clashWith.push(r2.name);
+    });
+  });
 }
 
 // ---------- RENDER ----------
@@ -938,10 +998,10 @@ function renderSearch(){
   DAYS.forEach(day => {
     const stages = DATA[day];
     let rows = [];
-    stages.forEach((s, si) => {
-      s.acts.forEach((a, ai) => {
+    stages.forEach(s => {
+      s.acts.forEach(a => {
         if(a[0].toLowerCase().includes(q) || s.stage.toLowerCase().includes(q)){
-          rows.push({stage:s.stage, name:a[0], start:a[1], end:a[2], si, ai});
+          rows.push({stage:s.stage, name:a[0], start:a[1], end:a[2]});
         }
       });
     });
@@ -953,7 +1013,7 @@ function renderSearch(){
     hdr.textContent = day;
     main.appendChild(hdr);
     rows.forEach(r => {
-      main.appendChild(actRow(day, r.si, r.ai, r.name, r.start, r.end, r.stage));
+      main.appendChild(actRow(day, r.stage, r.name, r.start, r.end, true));
     });
   });
   if(!any){
@@ -966,7 +1026,7 @@ function renderSearch(){
 
 function renderAll(){
   const stages = DATA[currentDay];
-  stages.forEach((s, si) => {
+  stages.forEach(s => {
     const stageEl = document.createElement("div");
     stageEl.className = "stage";
     const nameEl = document.createElement("div");
@@ -983,11 +1043,9 @@ function renderAll(){
     rule.className = "stage-rule";
     stageEl.appendChild(rule);
 
-    const order = s.acts.map((a, ai) => ai);
-    order.sort((x, y) => sortKey(s.acts[x][1]) - sortKey(s.acts[y][1]));
-    order.forEach(ai => {
-      const a = s.acts[ai];
-      stageEl.appendChild(actRow(currentDay, si, ai, a[0], a[1], a[2]));
+    const acts = [...s.acts].sort((x, y) => sortKey(x[1]) - sortKey(y[1]));
+    acts.forEach(a => {
+      stageEl.appendChild(actRow(currentDay, s.stage, a[0], a[1], a[2], false));
     });
     main.appendChild(stageEl);
   });
@@ -998,23 +1056,24 @@ function renderMine(){
   DAYS.forEach(day => {
     const stages = DATA[day];
     let rows = [];
-    stages.forEach((s, si) => {
-      s.acts.forEach((a, ai) => {
-        const id = day+"__"+si+"__"+ai;
+    stages.forEach(s => {
+      s.acts.forEach(a => {
+        const id = actId(day, s.stage, a[0], a[1]);
         if(picks.has(id)){
-          rows.push({id, stage:s.stage, name:a[0], start:a[1], end:a[2], si, ai});
+          rows.push({stage:s.stage, name:a[0], start:a[1], end:a[2]});
         }
       });
     });
     if(rows.length === 0) return;
     any = true;
     rows.sort((x,y) => sortKey(x.start) - sortKey(y.start));
+    findClashes(rows);
     const hdr = document.createElement("div");
     hdr.className = "day-header";
     hdr.textContent = day;
     main.appendChild(hdr);
     rows.forEach(r => {
-      main.appendChild(actRow(day, r.si, r.ai, r.name, r.start, r.end, r.stage));
+      main.appendChild(actRow(day, r.stage, r.name, r.start, r.end, true, r.clashWith));
     });
   });
   if(!any){
@@ -1025,10 +1084,11 @@ function renderMine(){
   }
 }
 
-function actRow(day, si, ai, name, start, end, stageLabel){
-  const id = day+"__"+si+"__"+ai;
+function actRow(day, stage, name, start, end, showStage, clashWith){
+  const id = actId(day, stage, name, start);
+  const hasClash = clashWith && clashWith.length > 0;
   const row = document.createElement("div");
-  row.className = "act" + (picks.has(id) ? " on" : "");
+  row.className = "act" + (picks.has(id) ? " on" : "") + (hasClash ? " clash" : "");
   row.dataset.id = id;
 
   const dot = document.createElement("div");
@@ -1042,10 +1102,24 @@ function actRow(day, si, ai, name, start, end, stageLabel){
   nameEl.textContent = name;
   body.appendChild(nameEl);
 
+  if(showStage){
+    const stageEl = document.createElement("div");
+    stageEl.className = "act-stage";
+    stageEl.textContent = stage;
+    body.appendChild(stageEl);
+  }
+
   const timeEl = document.createElement("div");
   timeEl.className = "act-time";
-  timeEl.textContent = stageLabel ? (stageLabel + " · " + start + "–" + end) : (start + "–" + end);
+  timeEl.textContent = start + "–" + end;
   body.appendChild(timeEl);
+
+  if(hasClash){
+    const clashEl = document.createElement("div");
+    clashEl.className = "act-clash";
+    clashEl.textContent = "Clashes with " + clashWith.join(", ");
+    body.appendChild(clashEl);
+  }
 
   row.appendChild(body);
 
