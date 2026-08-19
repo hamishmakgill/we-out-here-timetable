@@ -35,6 +35,23 @@
   }
   nav.tabs button:last-child{border-right:none;}
   nav.tabs button.active{background:var(--fg); color:var(--bg);}
+  .search-bar{
+    border-top:1px solid var(--line);
+    padding:2px 16px;
+  }
+  .search-bar input{
+    width:100%;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:inherit;
+    font-weight:400;
+    font-size:15.5px;
+    padding:9px 0;
+    color:var(--fg);
+    -webkit-appearance:none;
+  }
+  .search-bar input::placeholder{color:var(--dim);}
   nav.days{display:flex; border-top:1px solid var(--line);}
   nav.days button{
     flex:1; padding:9px 4px; font-size:12px; letter-spacing:0.06em;
@@ -132,6 +149,9 @@
     <button id="tab-all" class="active">All Acts</button>
     <button id="tab-mine">My Lineup <span id="mine-count"></span></button>
   </nav>
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search artists" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
   <nav class="days" id="day-nav">
     <button data-day="Thursday" class="active">Thu</button>
     <button data-day="Friday">Fri</button>
@@ -885,6 +905,7 @@ const STORE_KEY = "woh26-picks";
 let picks = new Set(JSON.parse(localStorage.getItem(STORE_KEY) || "[]"));
 let view = "all";
 let currentDay = "Thursday";
+let searchQuery = "";
 
 function savePicks(){
   localStorage.setItem(STORE_KEY, JSON.stringify([...picks]));
@@ -902,17 +923,52 @@ const main = document.getElementById("main");
 const dayNav = document.getElementById("day-nav");
 
 function render(){
-  document.getElementById("tab-all").classList.toggle("active", view==="all");
-  document.getElementById("tab-mine").classList.toggle("active", view==="mine");
-  dayNav.style.display = view==="all" ? "flex" : "none";
+  const searching = searchQuery.length > 0;
+  document.getElementById("tab-all").classList.toggle("active", !searching && view==="all");
+  document.getElementById("tab-mine").classList.toggle("active", !searching && view==="mine");
+  dayNav.style.display = (!searching && view==="all") ? "flex" : "none";
   const count = picks.size;
   document.getElementById("mine-count").textContent = count ? "("+count+")" : "";
 
   main.innerHTML = "";
-  if(view === "all"){
+  if(searching){
+    renderSearch();
+  } else if(view === "all"){
     renderAll();
   } else {
     renderMine();
+  }
+}
+
+function renderSearch(){
+  const q = searchQuery;
+  let any = false;
+  DAYS.forEach(day => {
+    const stages = DATA[day];
+    let rows = [];
+    stages.forEach((s, si) => {
+      s.acts.forEach((a, ai) => {
+        if(a[0].toLowerCase().includes(q) || s.stage.toLowerCase().includes(q)){
+          rows.push({stage:s.stage, name:a[0], start:a[1], end:a[2], si, ai});
+        }
+      });
+    });
+    if(rows.length === 0) return;
+    any = true;
+    rows.sort((x,y) => sortKey(x.start) - sortKey(y.start));
+    const hdr = document.createElement("div");
+    hdr.className = "day-header";
+    hdr.textContent = day;
+    main.appendChild(hdr);
+    rows.forEach(r => {
+      main.appendChild(actRow(day, r.si, r.ai, r.name, r.start, r.end, r.stage));
+    });
+  });
+  if(!any){
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No artists match “" + searchQuery + "”.";
+    main.appendChild(empty);
   }
 }
 
@@ -1011,8 +1067,15 @@ function actRow(day, si, ai, name, start, end, stageLabel){
 }
 
 // ---------- NAV ----------
-document.getElementById("tab-all").addEventListener("click", () => { view="all"; render(); });
-document.getElementById("tab-mine").addEventListener("click", () => { view="mine"; render(); });
+const searchInput = document.getElementById("search-input");
+
+function clearSearch(){
+  searchQuery = "";
+  searchInput.value = "";
+}
+
+document.getElementById("tab-all").addEventListener("click", () => { view="all"; clearSearch(); render(); });
+document.getElementById("tab-mine").addEventListener("click", () => { view="mine"; clearSearch(); render(); });
 dayNav.querySelectorAll("button").forEach(btn => {
   btn.addEventListener("click", () => {
     currentDay = btn.dataset.day;
@@ -1020,6 +1083,10 @@ dayNav.querySelectorAll("button").forEach(btn => {
     btn.classList.add("active");
     render();
   });
+});
+searchInput.addEventListener("input", () => {
+  searchQuery = searchInput.value.trim().toLowerCase();
+  render();
 });
 
 render();
